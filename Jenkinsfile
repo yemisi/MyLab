@@ -56,12 +56,12 @@ pipeline{
                 file: 'target/${ArtifactId}-${Version}.war', 
                 type: 'war']], 
                 credentialsId: '876d2b6b-b5b1-4d33-b853-909f5f657b6d', 
-                groupId: '${GroupId}', 
+                groupId: "${GroupId}", 
                 nexusUrl: '172.20.10.131:8081', 
                 nexusVersion: 'nexus3', 
                 protocol: 'http', 
                 repository: 'YemisDevOpsLab-SNAPSHOT', 
-                version: '${Version}'
+                version: "${Version}"
             }
         }
 
