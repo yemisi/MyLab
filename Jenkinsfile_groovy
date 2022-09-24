@@ -47,14 +47,15 @@ pipeline{
         //     }
         // }
 
-        // Stage3 : Publish the artifact to Nexus
+
+        // Stage3 : Publish the artifacts to Nexus
         stage ('Publish to Nexus'){
             steps {
-                script { 
-                
+                script {
+
                 def NexusRepo = Version.endsWith("SNAPSHOT") ? "YemisDevOpsLab-SNAPSHOT" : "YemisDevOpsLab-RELEASE"
-                
-                nexusArtifactUploader artifacts:
+
+                nexusArtifactUploader artifacts: 
                 [[artifactId: "${ArtifactId}", 
                 classifier: '', 
                 file: "target/${ArtifactId}-${Version}.war", 
@@ -66,11 +67,26 @@ pipeline{
                 protocol: 'http', 
                 repository: "${NexusRepo}", 
                 version: "${Version}"
-
-            
+             }
             }
         }
-        }
+
+                
+        //         def NexusRepo = Version.endsWith("SNAPSHOT") ? "YemisDevOpsLab-SNAPSHOT" : "YemisDevOpsLab-RELEASE"
+                
+        //         nexusArtifactUploader artifacts:
+        //         [[artifactId: "${ArtifactId}", 
+        //         classifier: "", 
+        //         file: "target/${ArtifactId}-${Version}.war", 
+        //         type: "war"]], 
+        //         credentialsId: "876d2b6b-b5b1-4d33-b853-909f5f657b6d", 
+        //         groupId: "${GroupId}", 
+        //         nexusUrl: "172.20.10.131:8081", 
+        //         nexusVersion: "nexus3", 
+        //         protocol: "http", 
+        //         repository: "${NexusRepo}", 
+        //         version: "${Version}"
+
 
         // Stage 4 : Print Environment variables
         stage ('Print Environment variables'){
@@ -81,6 +97,33 @@ pipeline{
                         echo "Name is '${Name}'"
                     }
                 }
+
+        // Stage 5 : Deploying
+        stage ('Deploy'){
+                    steps {
+                        sshPublisher(
+                            publishers: 
+                                [
+                                    sshPublisherDesc(
+                                                        configName: 'Ansible_controller', 
+                                                        transfers: [
+                                                            sshTransfer(
+                                                                        cleanRemote: false, 
+                                                                        execCommand: 'ansible-playbook /opt/playbooksdownloadanddeploy_tomcat.yaml -i /opt/playbooks/hosts', 
+                                                                        execTimeout: 120000, 
+                                                                    )
+                                                            ], 
+                                                        usePromotionTimestamp: false, 
+                                                        useWorkspaceInPromotion: false, 
+                                                        verbose: false
+                                    )
+                                ]
+                            )
+                    }
+                }
+
+// sshPublisher(publishers: [sshPublisherDesc(configName: 'Ansible_controller', transfers: [sshTransfer(cleanRemote: false, excludes: '', execCommand: '', execTimeout: 120000, flatten: false, makeEmptyDirs: false, noDefaultExcludes: false, patternSeparator: '[, ]+', remoteDirectory: '', remoteDirectorySDF: false, removePrefix: '', sourceFiles: '')], usePromotionTimestamp: false, useWorkspaceInPromotion: false, verbose: false)])
+
 
         // // Stage3 : Publish the source code to Sonarqube
         // stage ('Sonarqube Analysis'){
