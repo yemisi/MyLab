@@ -71,23 +71,6 @@ pipeline{
             }
         }
 
-                
-        //         def NexusRepo = Version.endsWith("SNAPSHOT") ? "YemisDevOpsLab-SNAPSHOT" : "YemisDevOpsLab-RELEASE"
-                
-        //         nexusArtifactUploader artifacts:
-        //         [[artifactId: "${ArtifactId}", 
-        //         classifier: "", 
-        //         file: "target/${ArtifactId}-${Version}.war", 
-        //         type: "war"]], 
-        //         credentialsId: "876d2b6b-b5b1-4d33-b853-909f5f657b6d", 
-        //         groupId: "${GroupId}", 
-        //         nexusUrl: "172.20.10.131:8081", 
-        //         nexusVersion: "nexus3", 
-        //         protocol: "http", 
-        //         repository: "${NexusRepo}", 
-        //         version: "${Version}"
-
-
         // Stage 4 : Print Environment variables
         stage ('Print Environment variables'){
                     steps {
@@ -99,7 +82,7 @@ pipeline{
                 }
 
         // Stage 5 : Deploying
-        stage ('Deploy'){
+        stage ('Deploy to Tomcat'){
                     steps {
                         sshPublisher(
                             publishers: 
@@ -122,6 +105,29 @@ pipeline{
                     }
                 }
 
+        // Stage 5 : Deploying
+        stage ('Deploy to DockerHost'){
+                    steps {
+                        sshPublisher(
+                            publishers: 
+                                [
+                                    sshPublisherDesc(
+                                                        configName: 'Ansible_controller', 
+                                                        transfers: [
+                                                            sshTransfer(
+                                                                        cleanRemote: false, 
+                                                                        execCommand: 'ansible-playbook /opt/playbooks/downloadanddeploy_docker.yaml -i /opt/playbooks/hosts', 
+                                                                        execTimeout: 120000, 
+                                                                    )
+                                                            ], 
+                                                        usePromotionTimestamp: false, 
+                                                        useWorkspaceInPromotion: false, 
+                                                        verbose: false
+                                    )
+                                ]
+                            )
+                    }
+                }
 // sshPublisher(publishers: [sshPublisherDesc(configName: 'Ansible_controller', transfers: [sshTransfer(cleanRemote: false, excludes: '', execCommand: '', execTimeout: 120000, flatten: false, makeEmptyDirs: false, noDefaultExcludes: false, patternSeparator: '[, ]+', remoteDirectory: '', remoteDirectorySDF: false, removePrefix: '', sourceFiles: '')], usePromotionTimestamp: false, useWorkspaceInPromotion: false, verbose: false)])
 
 
