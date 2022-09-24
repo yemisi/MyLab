@@ -50,6 +50,10 @@ pipeline{
         // Stage3 : Publish the artifact to Nexus
         stage ('Publish to Nexus'){
             steps {
+                script { 
+                
+                def NexusRepo = Version.endsWith("SNAPSHOT") ? "YemisDevOpsLab-SNAPSHOT" : "YemisDevOpsLab-RELEASE"
+                
                 nexusArtifactUploader artifacts:
                 [[artifactId: "${ArtifactId}", 
                 classifier: '', 
@@ -60,8 +64,10 @@ pipeline{
                 nexusUrl: '172.20.10.131:8081', 
                 nexusVersion: 'nexus3', 
                 protocol: 'http', 
-                repository: 'YemisDevOpsLab-SNAPSHOT', 
+                repository: "${NexusRepo}", 
                 version: "${Version}"
+
+            
             }
         }
 
@@ -74,6 +80,7 @@ pipeline{
                         echo "Name is '${Name}'"
                     }
                 }
+
         // // Stage3 : Publish the source code to Sonarqube
         // stage ('Sonarqube Analysis'){
         //     steps {
