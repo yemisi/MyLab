@@ -70,6 +70,7 @@ pipeline{
             
             }
         }
+        }
 
         // Stage 4 : Print Environment variables
         stage ('Print Environment variables'){
